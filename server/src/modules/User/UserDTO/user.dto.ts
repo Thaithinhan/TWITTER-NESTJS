@@ -42,3 +42,10 @@ export class DataLoginDTO {
   email: string;
   password: string;
 }
+
+export class UpdateUserDto {
+  fullname?: string;
+  username?: string;
+  avatar?: string;
+  cover_photo?: string;
+}
