@@ -21,6 +21,7 @@ export class CreateUserDTO {
   role?: number;
   avatar?: string;
   cover_photo?: string;
+  type_login?: number;
 }
 
 export class LoginUserDTO {
@@ -36,6 +37,7 @@ export class LoginUserDTO {
   role?: number;
   avatar?: string;
   cover_photo?: string;
+  type_login?: number;
 }
 
 export class DataLoginDTO {

@@ -1,6 +1,5 @@
 import { Response } from 'express';
-import { AuthGuard } from 'src/Auth/auth.guard';
-import { multerUpload } from 'src/config/multer.config';
+import { AuthUserGuard } from 'src/Guard/auth.guard';
 import { ExtendedRequest } from 'src/Types/Types';
 
 import {
@@ -15,21 +14,15 @@ import {
   Query,
   Req,
   Res,
-  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from '@nestjs/passport';
 
 import { EmailUniqueGuard } from './Guard/EmailUniqueGuard ';
-import { User } from './schemas/user.schema';
-import { UserService } from './user.service';
-import {
-  CreateUserDTO,
-  DataLoginDTO,
-  LoginUserDTO,
-  UpdateUserDto,
-} from './UserDTO/user.dto';
+import { UserUpdateInterceptor } from './Interceptor/user-update.interceptor';
+import { UserService } from './Service/user.service';
+import { CreateUserDTO, DataLoginDTO, UpdateUserDto } from './UserDTO/user.dto';
 
 @Controller('api/v1/users')
 export class UsersController {
@@ -76,19 +69,21 @@ export class UsersController {
       if (limit > 50)
         throw new BadRequestException('Limit should not exceed 50');
 
-      const { users, maxPages } = await this.usersService.getAllUsers(
-        page,
-        limit,
-      );
+      const { users, totalUsers, totalPage } =
+        await this.usersService.getAllUsers(page, limit);
 
-      if (page > maxPages && maxPages !== 0) {
+      if (page > totalPage && totalPage !== 0) {
         throw new BadRequestException('Page exceeds maximum limit');
       }
 
       return {
         data: users,
-        currentPage: Number(page),
-        maxPages,
+        meta: {
+          currentPage: Number(page),
+          perPage: limit,
+          totalUsers: totalUsers,
+          totalPages: totalPage,
+        },
       };
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -102,50 +97,83 @@ export class UsersController {
   }
   //GET USER CURRENT LOGIN
   @Get('current-user')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthUserGuard)
   async getMe(@Req() request: ExtendedRequest) {
     const user = await this.usersService.findUserById(request.userId);
-    return user; // Trả về thông tin người dùng sau khi loại bỏ trường password
+    return { user }; // Trả về thông tin người dùng sau khi loại bỏ trường password
+  }
+
+  //SEARCH USERS BY EMAIL AND USERNAME
+  @Get('search')
+  async searchUsers(@Query('query') query: string, @Res() res: Response) {
+    if (!query) {
+      return res.status(400).json({ message: 'Please enter a keyword' });
+    }
+
+    try {
+      const users = await this.usersService.searchUsers(query);
+      return res.status(200).json({ users });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Server error.' });
+    }
+  }
+
+  //LOGIN WITH GOOGLE
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {}
+
+  @Get('oauth/google')
+  @UseGuards(AuthGuard('google'))
+  googleAuthRedirect(@Req() req: any, @Res() res: Response) {
+    const { accessToken, refreshToken, user } = req.user;
+    res.redirect(`http://localhost:3000?token=${accessToken}`);
+    return res.status(200).json({ accessToken, refreshToken, user });
   }
 
   //GET USER BY ID
   @Get(':id')
   async findUserById(@Param('id') id: string) {
     const user = await this.usersService.findUserById(id);
-    return user;
+    return { user };
   }
 
   // UPDATE USER
   @Patch('update-user')
-  @UseGuards(AuthGuard)
-  @UseInterceptors(
-    FileFieldsInterceptor(
-      [
-        { name: 'avatar', maxCount: 1 },
-        { name: 'cover_photo', maxCount: 1 },
-      ],
-      multerUpload,
-    ),
-  )
+  @UseInterceptors(UserUpdateInterceptor)
+  @UseGuards(AuthUserGuard)
   async updateUser(
     @Req() request: ExtendedRequest,
+    @Res() res: Response,
     @Body() updateDataDto: UpdateUserDto,
-    @UploadedFiles()
-    files: {
-      avatar?: Express.Multer.File[];
-      cover_photo?: Express.Multer.File[];
-    },
-  ): Promise<User | { message: string }> {
-    const userId = request.userId;
+  ) {
+    try {
+      const userId = request.userId;
 
-    if (files.avatar) {
-      updateDataDto.avatar = files.avatar[0].path;
+      if (updateDataDto.username && updateDataDto.username.length < 6) {
+        throw new Error('Username must be at least 6 characters');
+      }
+      if (updateDataDto.fullname && updateDataDto.fullname.length < 6) {
+        throw new Error('Fullname must be at least 6 characters');
+      }
+      if (request.body.avatarUrl) {
+        updateDataDto.avatar = request.body.avatarUrl;
+      }
+      if (request.body.coverPhotoUrl) {
+        updateDataDto.cover_photo = request.body.coverPhotoUrl;
+      }
+
+      const updatedUser = await this.usersService.updateUser(
+        userId,
+        updateDataDto,
+      );
+      return res.status(200).json({ user: updatedUser });
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return res
+        .status(500)
+        .json({ message: 'Error updating user.', error: error });
     }
-
-    if (files.cover_photo) {
-      updateDataDto.cover_photo = files.cover_photo[0].path;
-    }
-
-    return this.usersService.updateUser(userId, updateDataDto);
   }
 }

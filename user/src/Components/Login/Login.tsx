@@ -1,7 +1,7 @@
 import "./Login.css";
 import "react-toastify/dist/ReactToastify.css";
 
-import React, { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import GoogleButton from "react-google-button";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
@@ -10,6 +10,7 @@ import { toast, ToastContainer } from "react-toastify";
 import BaseAxios from "../../API/axiosConfig";
 import { login } from "../../Redux/Reducer/userSlice";
 import { AppDispatch } from "../../Redux/Store/store";
+import { loginWithGoogle } from "../../Utils/commonFunction";
 
 const Login = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -33,6 +34,7 @@ const Login = () => {
         .catch((err) => console.log(err));
     }
   }, []);
+  //LOGIN NORMAL
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
@@ -54,6 +56,10 @@ const Login = () => {
       console.error("Login failed:", error);
       // Handle error: show a notification, set an error state, etc.
     }
+  };
+  //LOGIN WITH GOOGLE
+  const handleLoginGoogle = async () => {
+    await loginWithGoogle();
   };
 
   return (
@@ -117,7 +123,7 @@ const Login = () => {
         <div className="line" />
       </div>
 
-      <GoogleButton className="google_btn" />
+      <GoogleButton className="google_btn" onClick={handleLoginGoogle} />
 
       <h5>
         Don't Have you account?

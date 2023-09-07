@@ -1,5 +1,5 @@
 .left-bar {
-  width: 245px;
+  flex-basis: 245px;
   height: 95vh;
   justify-content: space-between;
 }

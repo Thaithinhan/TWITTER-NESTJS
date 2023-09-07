@@ -1,8 +1,8 @@
 import "./TopLeftBar.css";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { LuVerified } from "react-icons/lu";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { io } from "socket.io-client";
 
 import BookmarksOutlinedIcon from "@mui/icons-material/BookmarksOutlined";
@@ -12,38 +12,55 @@ import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNone
 import PermIdentityOutlinedIcon from "@mui/icons-material/PermIdentityOutlined";
 
 import { useTweets } from "../../../Context/TweetContext";
+import { useUser } from "../../../Context/UserContext";
 import { fetchTweetsByUserId } from "../../../Utils/TweetFunction";
 
 const TopLeftBar = () => {
-  const userLogin = JSON.parse(localStorage.getItem("userLogin"));
+  const { user: userLogin } = useUser();
   const { resetTweets, setTweets } = useTweets();
+  const [activTab, setActiveTab] = useState("home");
+  const path = useLocation().pathname;
   const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
-    const socket = io("http://localhost:8000");
+    if (path == "/home") {
+      setActiveTab("home");
+    }
+    if (path == "/notifications") {
+      setActiveTab("notification");
+    }
+    if (path == "/messages") {
+      setActiveTab("messages");
+    }
+    if (path == "/verify") {
+      setActiveTab("verify");
+    }
+    if (path.includes("/profile")) {
+      setActiveTab("profile");
+    }
+  }, [path]);
 
-    socket.on("connect", () => {
-      console.log("Connected to server", socket.id);
-    });
-
-    // Thay đổi địa chỉ máy chủ của bạn
-    socket.on("notification", (data) => {
-      console.log("data socket", data.data.senderId);
-      console.log("curent", userLogin?._id);
-
-      if (userLogin?._id !== data.data.senderId) {
-        setNotificationCount((prevCount) => prevCount + 1);
-      }
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Disconnected from server", socket.id);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
+  useEffect(() => {
+    // const socket = io("http://localhost:8000");
+    // socket.on("connect", () => {
+    //   console.log("Connected to server", socket.id);
+    // });
+    // // Thay đổi địa chỉ máy chủ của bạn
+    // socket.on("notification", (data) => {
+    //   console.log("data socket", data.data.senderId);
+    //   console.log("curent", userLogin?._id);
+    //   if (userLogin?._id !== data.data.senderId) {
+    //     setNotificationCount((prevCount) => prevCount + 1);
+    //   }
+    // });
+    // socket.on("disconnect", () => {
+    //   console.log("Disconnected from server", socket.id);
+    // });
+    // return () => {
+    //   socket.disconnect();
+    // };
   }, []);
+
   return (
     <div className="top-sidebar">
       <div className="logo-image">
@@ -61,45 +78,77 @@ const TopLeftBar = () => {
         </Link>
       </div>
       <ul className="list-menu-sidebar">
-        <li className="menu-item-sidebar active">
-          <Link to={"/home"} className="menu ">
+        <li
+          className={
+            activTab === "home"
+              ? "menu-item-sidebar active"
+              : "menu-item-sidebar"
+          }
+        >
+          <Link to={"/home"} className="menu">
             <HomeIcon className="icon-menu" />{" "}
             <span className="menu-title">Home</span>
           </Link>
         </li>
-        <li className="menu-item-sidebar">
-          <Link
-            to={"/notifications"}
-            className="menu"
-            // onClick={handleNotificationClick}
-          >
+        <li
+          className={
+            activTab === "notification"
+              ? "menu-item-sidebar active"
+              : "menu-item-sidebar"
+          }
+        >
+          <Link to={"/notifications"} className="menu">
             <NotificationsNoneOutlinedIcon className="icon-menu" />
             <span className="menu-title">Notifications</span>
             <span className="notification-badge">{notificationCount}</span>
           </Link>
         </li>
-        <li className="menu-item-sidebar">
-          <Link to={"/messages"} className="menu ">
+        <li
+          className={
+            activTab === "messages"
+              ? "menu-item-sidebar active"
+              : "menu-item-sidebar"
+          }
+        >
+          <Link to={"/messages"} className={"menu"}>
             <ForumOutlinedIcon className="icon-menu" />
             <span className="menu-title"> Messages</span>
           </Link>
         </li>
-        <li className="menu-item-sidebar">
-          <Link to={"/bookmarks"} className="menu ">
+        <li
+          className={
+            activTab === "bookmarks"
+              ? "menu-item-sidebar active"
+              : "menu-item-sidebar"
+          }
+        >
+          <Link to={"/bookmarks"} className={"menu"}>
             <BookmarksOutlinedIcon className="icon-menu" />
             <span className="menu-title"> Bookmarks</span>
           </Link>
         </li>
-        <li className="menu-item-sidebar">
-          <Link to={`/verify`} className="menu ">
+        <li
+          className={
+            activTab === "verify"
+              ? "menu-item-sidebar active"
+              : "menu-item-sidebar"
+          }
+        >
+          <Link to={`/verify`} className={"menu"}>
             <LuVerified className="icon-menu" />{" "}
             <span className="menu-title">Verify</span>
           </Link>
         </li>
-        <li className="menu-item-sidebar">
+        <li
+          className={
+            activTab === "profile"
+              ? "menu-item-sidebar active"
+              : "menu-item-sidebar"
+          }
+        >
           <Link
             to={`/profile/${userLogin?._id}`}
-            className="menu "
+            className={activTab === "profile" ? "menu active" : "menu"}
             onClick={async () => {
               resetTweets();
               const newTweets = await fetchTweetsByUserId(

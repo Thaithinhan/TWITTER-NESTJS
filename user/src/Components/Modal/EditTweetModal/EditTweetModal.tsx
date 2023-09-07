@@ -1,28 +1,14 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import React, { ChangeEvent, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 
-import CloseIcon from "@mui/icons-material/Close";
-import {
-  Box,
-  Button,
-  IconButton,
-  Modal,
-  TextField,
-  Typography,
-} from "@mui/material";
+import CloseIcon from '@mui/icons-material/Close';
+import { Box, Button, IconButton, Modal, TextField, Typography } from '@mui/material';
 
-import { useTweets } from "../../../Context/TweetContext";
-import { useUser } from "../../../Context/UserContext";
-import {
-  IEditTweetModal,
-  IValueInputEditTweetContent,
-} from "../../../Types/type";
-import { getRelevantTweets } from "../../../Utils/commonFunction";
-import {
-  fetchAllTweets,
-  fetchTweetsByUserId,
-  updateTweetById,
-} from "../../../Utils/TweetFunction";
+import { useTweets } from '../../../Context/TweetContext';
+import { useUser } from '../../../Context/UserContext';
+import { IEditTweetModal, IValueInputEditTweetContent } from '../../../Types/type';
+import { getRelevantTweets } from '../../../Utils/commonFunction';
+import { fetchAllTweets, fetchTweetsByUserId, updateTweetById } from '../../../Utils/TweetFunction';
 
 const style = {
   position: "absolute",
@@ -95,6 +81,7 @@ function EditTweetModal({
 
   //XỬ LÝ SỰ KIỆN SUBMIT
   const handleEditTweet = async () => {
+    //Phải là newformData
     const formData: { content: string; medias: File[] } = {
       content: "",
       medias: [],
@@ -103,7 +90,7 @@ function EditTweetModal({
       formData.content = inputValue.content;
     }
     if (inputFiles.medias) {
-      formData.medias = [...formData.medias, ...inputFiles.medias];
+      formData.medias = inputFiles.medias;
     }
     try {
       if (tweet?._id) {

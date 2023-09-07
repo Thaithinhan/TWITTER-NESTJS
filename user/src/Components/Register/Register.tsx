@@ -1,7 +1,7 @@
 import "./Register.css";
 
 import axios from "axios";
-import  { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
 
 const Register = () => {
@@ -23,25 +23,61 @@ const Register = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setErrorShow({
+      ...errorShow,
+      ["error" +
+      e.target.name.charAt(0).toUpperCase() +
+      e.target.name.slice(1)]: "",
+    });
   };
-
   const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
+    let hasError = false;
+    if (formData.fullname.length < 6) {
+      setErrorShow((prevErrors) => ({
+        ...prevErrors,
+        errorFullname: "Fullname must be at least 6 characters",
+      }));
+      hasError = true;
+    }
+    if (formData.username.length < 6) {
+      setErrorShow((prevErrors) => ({
+        ...prevErrors,
+        errorUsername: "Username must be at least 6 characters",
+      }));
+      hasError = true;
+    }
+    if (formData.email.length == 0) {
+      setErrorShow((prevErrors) => ({
+        ...prevErrors,
+        errorEmail: "Email must be at least 6 characters",
+      }));
+      hasError = true;
+    }
+    if (formData.password.length < 8) {
+      setErrorShow((prevErrors) => ({
+        ...prevErrors,
+        errorPassword: "Password must be at least 8 characters",
+      }));
+      hasError = true;
+    }
 
+    if (hasError) return;
     try {
       const response = await axios.post(
         "http://localhost:8000/api/v1/users",
         formData
       );
+      console.log("register response", response);
 
-      console.log(response);
-      // setMessage(response.data.message); // Set thông báo thành công
-      // Chuyển hướng người dùng nếu cần
       window.location.href = "/";
-    } catch (error: any ) {
+    } catch (error: any) {
       // Ví dụ: hiển thị thông báo lỗi từ server
       console.log(error);
-      setErrorShow(error.response.data);
+      setErrorShow((prev) => ({
+        ...prev,
+        errorEmail: error.response.data.message,
+      }));
     }
   };
 
@@ -77,7 +113,7 @@ const Register = () => {
           <label htmlFor="reg-fullname">
             Fullname <sup className="text-danger">*</sup>
           </label>
-          <p className="text-danger fw-bold"></p>
+          <p className="text-red-500 error">{errorShow.errorFullname}</p>
         </div>
         <div className="form-group">
           <input
@@ -90,7 +126,9 @@ const Register = () => {
           <label htmlFor="reg-username">
             Username <sup className="text-danger">*</sup>
           </label>
-          <p className="text-danger fw-bold"></p>
+          <p className="text-red-500  fw-bold error">
+            {errorShow.errorUsername}
+          </p>
         </div>
         <div className="form-group">
           <input
@@ -118,7 +156,7 @@ const Register = () => {
           <label htmlFor="reg-password">
             Password <sup className="text-danger">*</sup>
           </label>
-          <p className="text-danger fw-bold"></p>
+          <p className="text-red-500  error">{errorShow.errorPassword}</p>
         </div>
         <input
           type="submit"

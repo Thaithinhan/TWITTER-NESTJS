@@ -11,6 +11,7 @@ import PhotoIcon from "@mui/icons-material/Photo";
 import { useUser } from "../../Context/UserContext";
 import { HomeHeaderProps } from "../../Types/type";
 import { postNewTweet } from "../../Utils/commonFunction";
+import LoadingComponent from "../LoadingComponent/isLoading";
 
 interface Emoji {
   native: string;
@@ -23,6 +24,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = (props) => {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [inputValue, setInputValue] = useState<string>("");
   const { user: currentUser } = useUser();
+  const [isLoadingImage, setIsloadingImage] = useState<boolean>(false);
 
   const handleToggleEmojiPicker = () => {
     setShowEmojiPicker(!showEmojiPicker);
@@ -72,6 +74,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = (props) => {
   //POST NEW TWEET
   const handlePostNewTweet = async (event: FormEvent) => {
     event.preventDefault();
+    setIsloadingImage(true);
     const data = { content: inputValue, images: selectedImages };
     try {
       const response = await postNewTweet(data);
@@ -80,13 +83,16 @@ const HomeHeader: React.FC<HomeHeaderProps> = (props) => {
         setSelectedImages([]);
         onNewTweet();
       }
+      setIsloadingImage(false);
     } catch (error) {
       console.log(error);
+      setIsloadingImage(false);
     }
   };
 
   return (
     <div className="main-page-header">
+      {isLoadingImage && <LoadingComponent />}
       <h4 className="font-bold text-xl">Home</h4>
       <div className="tweetbox">
         <form className="form-new-tweet" onSubmit={handlePostNewTweet}>

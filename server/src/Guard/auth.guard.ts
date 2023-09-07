@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class AuthUserGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     try {

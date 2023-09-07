@@ -1,11 +1,12 @@
 // email-unique.guard.ts
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  Injectable,
 } from '@nestjs/common';
-import { UserService } from '../user.service';
+
+import { UserService } from '../Service/user.service';
 
 @Injectable()
 export class EmailUniqueGuard implements CanActivate {

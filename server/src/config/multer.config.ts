@@ -21,22 +21,34 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: (error: Error | null, acceptFile: boolean) => void,
 ) => {
-  if (['image/jpeg', 'image/jpg', 'image/png'].includes(file.mimetype)) {
+  if (
+    ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'].includes(
+      file.mimetype,
+    )
+  ) {
     cb(null, true);
   } else {
     cb(
-      new Error('Invalid file type. Only JPEG, JPG, and PNG are allowed!'),
+      new Error(
+        'Invalid file type. Only JPEG, JPG, and PNG or GIF are allowed!',
+      ),
       false,
     );
   }
 };
 
 const uploadLimits = {
-  fileSize: 2 * 1024 * 1024,
+  fileSize: 1 * 1024 * 1024,
 };
 
 export const multerUpload = {
   storage: storage,
+  fileFilter: fileFilter,
+  limits: uploadLimits,
+};
+
+export const parseDataConfig = {
+  storage: multer.memoryStorage(),
   fileFilter: fileFilter,
   limits: uploadLimits,
 };

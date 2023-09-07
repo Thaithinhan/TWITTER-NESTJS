@@ -1,21 +1,11 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from 'react';
 
-import CloseIcon from "@mui/icons-material/Close";
-import {
-  Box,
-  Button,
-  IconButton,
-  Modal,
-  TextField,
-  Typography,
-} from "@mui/material";
+import CloseIcon from '@mui/icons-material/Close';
+import { Box, Button, IconButton, Modal, TextField, Typography } from '@mui/material';
 
-import { useUser } from "../../../Context/UserContext";
-import { IImageProfile, IModal, IValueInputProfile } from "../../../Types/type";
-import {
-  fetchCurrentUser,
-  fetchUpdateUser,
-} from "../../../Utils/commonFunction";
+import { useUser } from '../../../Context/UserContext';
+import { IImageProfile, IModal, IValueInputProfile } from '../../../Types/type';
+import { fetchCurrentUser, fetchUpdateUser } from '../../../Utils/commonFunction';
 
 const style = {
   position: "absolute",

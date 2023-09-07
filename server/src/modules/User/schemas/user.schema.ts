@@ -1,4 +1,3 @@
-import { Exclude } from 'class-transformer';
 import { HydratedDocument } from 'mongoose';
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
@@ -45,6 +44,8 @@ export class User {
       'https://ss-images.saostar.vn/fb1200png_2/2023/5/15/pc/1684126868405/saostar-mj1g89rrg3blzz2j.jpg/fbsscover.png',
   })
   cover_photo: string;
+  @Prop({ enum: [1, 2] })
+  type_login: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
