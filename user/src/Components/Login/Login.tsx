@@ -40,11 +40,18 @@ const Login = () => {
     try {
       const response = await dispatch(login(inputValue)).unwrap();
       const { user } = response;
-      if (user.status) {
+      if (user.status && user.type_login == 1) {
+        localStorage.setItem("accessToken", response.accessToken);
+        localStorage.setItem("userLogin", JSON.stringify(response.user));
         window.location.href = "/home";
         setInputValue({ email: "", password: "" });
-      } else {
+      } else if (!user.status) {
         toast.error("Your account is blocked.", {
+          position: toast.POSITION.TOP_RIGHT,
+          autoClose: 3000,
+        });
+      } else if (user.type_login == 2) {
+        toast.error("Your account is login with Google.", {
           position: toast.POSITION.TOP_RIGHT,
           autoClose: 3000,
         });

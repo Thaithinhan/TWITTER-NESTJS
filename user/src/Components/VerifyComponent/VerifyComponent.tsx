@@ -1,56 +1,45 @@
 import "./VerifyComponent.css";
 
 import { useEffect, useState } from "react";
-import { Button, Form } from "react-bootstrap";
+import { Form } from "react-bootstrap";
+
+import { useUser } from "../../Context/UserContext";
+import { fetchCurrentUser } from "../../Utils/commonFunction";
+import PaypalComponent from "./PaypalComponent /PaypalComponent";
 
 const VerifyAccount = () => {
-  const [amount, setAmount] = useState(100000);
+  const [amount, setAmount] = useState(20);
+  const { user: userLogin, setUser } = useUser();
   const [verificationType, setVerificationType] = useState("monthly");
-  const [isVerify, setIsVerify] = useState(false);
+  const [verify, setVerify] = useState(1);
+  const [isVerify, setIsVerify] = useState(userLogin?.verify ? true : false);
 
   useEffect(() => {
     if (verificationType === "monthly") {
-      setAmount(100000);
+      setAmount(20);
+      setVerify(1);
     } else if (verificationType === "permanent") {
-      setAmount(1000000);
+      setAmount(200);
+      setVerify(2);
     }
   }, [verificationType]);
-
-  // const checkVerificationStatus = async () => {
-  //   try {
-  //     const response = await dispatch(checkVerifyUser(userLogin._id));
-  //     setIsVerify(response.payload?.isVerified);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-  useEffect(() => {}, []);
 
   const handleSelectChange = (event: any) => {
     setVerificationType(event.target.value);
   };
-
-  const handleSubmit = async (event: any) => {
-    event.preventDefault();
-    // try {
-    //   const newOrder = {
-    //     amount: amount,
-    //     verificationType: verificationType,
-    //   };
-
-    //   // console.log(newOrder);
-    //   const response = await dispatch(buyVerifyUser(newOrder)).unwrap();
-    //   console.log(response);
-    //   setIsVerify(true);
-    // } catch (error) {
-    //   console.log(error);
-    // }
-  };
+  useEffect(() => {
+    fetchCurrentUser().then(setUser);
+  }, []);
+  useEffect(() => {
+    if (userLogin?.verify) {
+      setIsVerify(true);
+    }
+  }, [userLogin]);
 
   return (
     <div className="verify-account">
       <h2 className="text-2xl font-bold text-center">Verify your account</h2>
-      <Form onSubmit={handleSubmit}>
+      <Form>
         <Form.Group className="mb-3">
           <Form.Label className="me-1">Your Name: </Form.Label>
           <Form.Control
@@ -85,13 +74,21 @@ const VerifyAccount = () => {
             value={verificationType}
             name="verificationType"
           >
-            <option value="monthly">Monthly - 100.000VND</option>
-            <option value="permanent">Forever - 1.000.000VND</option>
+            <option value="monthly">Monthly - 20$</option>
+            <option value="permanent">Forever - 200$</option>
           </Form.Select>
         </Form.Group>
-        <Button variant="primary" type="submit" disabled={isVerify}>
-          {isVerify ? "Already Verified" : "Verify Confirm"}
-        </Button>
+        {isVerify ? (
+          <h3 className="bg-blue-500 text-white font-bold text-center p-2">
+            You have already verified
+          </h3>
+        ) : (
+          <PaypalComponent
+            verify={verify}
+            amount={amount}
+            setIsverify={setIsVerify}
+          />
+        )}
       </Form>
     </div>
   );

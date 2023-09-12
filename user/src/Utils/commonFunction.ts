@@ -1,4 +1,7 @@
+import { verify } from "crypto";
 import { toast } from "react-toastify";
+
+import data from "@emoji-mart/data";
 
 import BaseAxios from "../API/axiosConfig";
 
@@ -88,7 +91,7 @@ export const checkFollowing = async (tweetAuthorId: string) => {
   }
 };
 
-//LOGIN WITH GOOGLE
+// LOGIN WITH GOOGLE
 export const loginWithGoogle = async () => {
   try {
     // Khai báo thông số cho cửa sổ popup
@@ -101,7 +104,7 @@ export const loginWithGoogle = async () => {
     const popup = window.open(
       "http://localhost:8000/api/v1/users/google",
       "Login with Google",
-      `toolbar=no, location=no, directories=no, status=no, menubar=no, 
+      `toolbar=no, location=no, directories=no, status=no, menubar=no,
        scrollbars=yes, resizable=no, width=${width}, height=${height}, top=${top}, left=${left}`
     );
 
@@ -153,5 +156,14 @@ export const loginWithGoogle = async () => {
     toast.error("Login with Google failed.", {
       position: toast.POSITION.TOP_RIGHT,
     });
+  }
+};
+//UPDATE USER VERIFY
+export const updateUserVerify = async (verify: object) => {
+  try {
+    const response = await BaseAxios.patch("/api/v1/users/verify", verify);
+    return response.data;
+  } catch (error) {
+    console.log(error);
   }
 };

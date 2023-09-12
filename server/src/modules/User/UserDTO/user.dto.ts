@@ -51,3 +51,10 @@ export class UpdateUserDto {
   avatar?: string;
   cover_photo?: string;
 }
+export class UpdateUserStatusDto {
+  status: number; // Sử dụng kiểu dữ liệu thích hợp cho trạng thái (ví dụ: number, string, enum)
+}
+export class UpdateUserVerifyDto {
+  verify: number;
+  price: number; // Sử dụng kiểu dữ liệu thích hợp cho trạng thái (ví dụ: number, string, enum)
+}

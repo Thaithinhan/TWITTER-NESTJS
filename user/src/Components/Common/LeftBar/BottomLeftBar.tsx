@@ -1,7 +1,5 @@
 import "./BottomLeftBar.css";
 
-import React from "react";
-
 import { useUser } from "../../../Context/UserContext";
 import Dropdown_LogOut from "./Dropdown-LogOut/Dropdown_LogOut";
 

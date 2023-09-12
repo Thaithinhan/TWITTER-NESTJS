@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './app.module';
+import { CustomIoAdapter } from './modules/Tweet/Tweet.service';
 
 const PORT = 8000;
 
@@ -25,6 +26,9 @@ async function bootstrap() {
       credentials: true, // Cho phép gửi credentials (ví dụ: cookies)
     },
   });
+  const ioAdapter = new CustomIoAdapter(app);
+  app.useWebSocketAdapter(ioAdapter);
+
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(PORT, () => {

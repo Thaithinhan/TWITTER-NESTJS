@@ -1,9 +1,15 @@
-import { Model, Types } from 'mongoose';
+import { Model, ObjectId, Types } from 'mongoose';
+import { async } from 'rxjs';
+import { ServerOptions } from 'socket.io';
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
+import { FollowService } from '../Follow/follow.service';
 import { Follow } from '../Follow/Schemas/follow.schemas';
+import { NotificationService } from '../Notification/notification.service';
+import { User } from '../User/schemas/user.schema';
 import { Tweet, TweetDocument } from './Schemas/tweet.schemas';
 
 @Injectable()
@@ -11,19 +17,34 @@ export class TweetService {
   constructor(
     @InjectModel(Tweet.name) private tweetModel: Model<TweetDocument>,
     @InjectModel(Follow.name) private followModel: Model<Follow>,
+    private notificationService: NotificationService,
+    private followService: FollowService,
   ) {}
   //CREATE TWEET
   async createTweet(
     author: string,
     content: string,
     mediaUrls: string[],
-  ): Promise<TweetDocument> {
+  ): Promise<any> {
     const tweet = new this.tweetModel({
       content,
       medias: mediaUrls,
       author: new Types.ObjectId(author),
     });
-    return tweet.save();
+    const followers = await this.followModel.find({
+      followed_userId: new Types.ObjectId(author),
+    });
+    await tweet.save();
+    followers.forEach(async (followeId: Follow) => {
+      await this.notificationService.create({
+        senderId: new Types.ObjectId(author),
+        receiverId: followeId.current_userId,
+        type: 'new_tweet',
+        tweetId: tweet._id, // Loại thông báo
+      });
+    });
+
+    return { newTweet: tweet, followers };
   }
   //UPDATE TWEET BY TWEET ID
   async updateTweet(
@@ -110,7 +131,6 @@ export class TweetService {
   //ADD LIKE TWEET
   async likeTweet(tweetId: string, userId: string): Promise<TweetDocument> {
     const tweet = await this.tweetModel.findById(tweetId);
-
     if (!tweet) {
       throw new NotFoundException('Tweet not found');
     }
@@ -118,6 +138,15 @@ export class TweetService {
     if (!tweet.likes.includes(new Types.ObjectId(userId))) {
       tweet.likes.push(new Types.ObjectId(userId));
       await tweet.save();
+      // Tạo thông báo cho việc thích tweet
+      if (tweet.author.toString() != userId.toString()) {
+        await this.notificationService.create({
+          senderId: new Types.ObjectId(userId),
+          receiverId: tweet.author,
+          type: 'like',
+          tweetId: tweet._id, // Loại thông báo
+        });
+      }
     }
     return tweet;
   }
@@ -150,6 +179,7 @@ export class TweetService {
     mediaUrls: string[],
     parentId: Types.ObjectId,
   ): Promise<TweetDocument> {
+    const parentTweet = await this.tweetModel.findById(parentId);
     const comment = new this.tweetModel({
       content,
       medias: mediaUrls,
@@ -158,6 +188,18 @@ export class TweetService {
       parentId,
     });
     await comment.save();
+    // Tạo thông báo cho việc comment một bài tweet
+    if (
+      parentTweet &&
+      comment.author.toString() != parentTweet.author.toString()
+    ) {
+      await this.notificationService.create({
+        senderId: new Types.ObjectId(author),
+        receiverId: parentTweet?.author,
+        type: 'comment',
+        tweetId: new Types.ObjectId(parentId), // Loại thông báo
+      });
+    }
     return comment;
   }
   // GET LIST COMMENT OF PARENT TWEET ID
@@ -168,5 +210,19 @@ export class TweetService {
       .sort({ createdAt: -1 })
       .exec();
     return listComments;
+  }
+}
+
+export class CustomIoAdapter extends IoAdapter {
+  createIOServer(port: 8000, options?: ServerOptions): any {
+    options = {
+      ...options,
+      cors: {
+        origin: ['http://localhost:3000', 'http://localhost:5100'],
+        methods: ['GET', 'POST'],
+        credentials: true,
+      },
+    };
+    return super.createIOServer(port, options);
   }
 }

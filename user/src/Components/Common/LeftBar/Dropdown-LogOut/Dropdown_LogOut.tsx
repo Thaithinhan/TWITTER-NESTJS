@@ -1,10 +1,10 @@
 import "./DropDown_Logout.css";
 
-import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { Button, DropdownMenu } from "@radix-ui/themes";
 
+import Profile from "../../../../Layouts/Profile/Profile";
 import { IDropdownBottomLefBar } from "../../../../Types/type";
 
 function Dropdown_LogOut({ currentUser }: IDropdownBottomLefBar) {
@@ -12,7 +12,7 @@ function Dropdown_LogOut({ currentUser }: IDropdownBottomLefBar) {
     // 1. Xoá JWT khỏi localStorage (hoặc sessionStorage/cookies tùy theo bạn lưu ở đâu)
     window.location.href = "/";
   };
-
+  const navigate = useNavigate();
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
@@ -25,8 +25,15 @@ function Dropdown_LogOut({ currentUser }: IDropdownBottomLefBar) {
         side="top"
         className="custom-dropdown-content"
       >
-        <DropdownMenu.Item shortcut="⌘ E" className="font-bold">
-          <Link to={`/profile/${currentUser?._id}`}>My Profile</Link>
+        <DropdownMenu.Item
+          shortcut="⌘ E"
+          className="font-bold"
+          onClick={() => {
+            navigate(`/profile/${currentUser?._id}`);
+          }}
+        >
+          {/* <Link to={`/profile/${currentUser?._id}`}>My Profile</Link> */}
+          My Profile
         </DropdownMenu.Item>
         <DropdownMenu.Separator />
         <DropdownMenu.Item

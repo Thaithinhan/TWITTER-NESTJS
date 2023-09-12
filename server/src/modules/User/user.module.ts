@@ -3,6 +3,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
 
+import { RevenueModule } from '../Revenue/revenue.module';
+import { RevenueService } from '../Revenue/revenue.service';
 import { EmailUniqueGuard } from './Guard/EmailUniqueGuard ';
 import { UserSchema } from './schemas/user.schema';
 import { MailService } from './Service/nodemailer.service';
@@ -18,8 +20,15 @@ import { UsersController } from './user.controller';
       signOptions: { expiresIn: '2d' },
     }),
     PassportModule,
+    RevenueModule,
   ],
   controllers: [UsersController],
-  providers: [UserService, EmailUniqueGuard, MailService, GoogleStrategy],
+  providers: [
+    UserService,
+    EmailUniqueGuard,
+    MailService,
+    GoogleStrategy,
+    RevenueService,
+  ],
 })
 export class UserModule {}

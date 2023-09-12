@@ -19,14 +19,24 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
+import { RevenueService } from '../Revenue/revenue.service';
 import { EmailUniqueGuard } from './Guard/EmailUniqueGuard ';
 import { UserUpdateInterceptor } from './Interceptor/user-update.interceptor';
 import { UserService } from './Service/user.service';
-import { CreateUserDTO, DataLoginDTO, UpdateUserDto } from './UserDTO/user.dto';
+import {
+  CreateUserDTO,
+  DataLoginDTO,
+  UpdateUserDto,
+  UpdateUserStatusDto,
+  UpdateUserVerifyDto,
+} from './UserDTO/user.dto';
 
 @Controller('api/v1/users')
 export class UsersController {
-  constructor(private usersService: UserService) {}
+  constructor(
+    private usersService: UserService,
+    private revenueService: RevenueService,
+  ) {}
 
   //REGISTER
   @Post()
@@ -34,7 +44,7 @@ export class UsersController {
   async createUser(@Body() newUser: CreateUserDTO) {
     return this.usersService.createUser(newUser);
   }
-
+  //LOGIN
   @Post('login')
   async login(@Body() data: DataLoginDTO, @Res() res: Response) {
     const resData = await this.usersService
@@ -128,8 +138,14 @@ export class UsersController {
   @UseGuards(AuthGuard('google'))
   googleAuthRedirect(@Req() req: any, @Res() res: Response) {
     const { accessToken, refreshToken, user } = req.user;
-    res.redirect(`http://localhost:3000?token=${accessToken}`);
-    return res.status(200).json({ accessToken, refreshToken, user });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: true, // Bạn chỉ nên sử dụng option này khi ứng dụng chạy trên HTTPS
+      sameSite: 'none',
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Set thời gian hết hạn cho cookie = 7 ngày
+    });
+    return res.redirect(`http://localhost:3000?token=${accessToken}`);
+    // return res.status(200).json({ accessToken, refreshToken, user });
   }
 
   //GET USER BY ID
@@ -174,6 +190,67 @@ export class UsersController {
       return res
         .status(500)
         .json({ message: 'Error updating user.', error: error });
+    }
+  }
+  //UPDATE USER STATUS
+  @Patch('/:id/status')
+  async updateUserStatus(
+    @Req() req: ExtendedRequest,
+    @Body() updateUserStatusDto: UpdateUserStatusDto,
+    @Param('id') userId: string,
+  ) {
+    const updatedUser = await this.usersService.updateUserStatus(
+      userId,
+      updateUserStatusDto.status,
+    );
+    return { user: updatedUser };
+  }
+  //UPDATE USER VERIFY
+  @Patch('verify')
+  @UseGuards(AuthUserGuard)
+  async updateUserVerify(
+    @Req() req: ExtendedRequest,
+    @Body() updateUserVerify: UpdateUserVerifyDto,
+  ) {
+    const userId = req.userId;
+    const updateUser = await this.usersService.updateUserVerify(
+      userId,
+      updateUserVerify.verify,
+    );
+    const expirationDate = new Date();
+    if (updateUserVerify.verify === 1) {
+      expirationDate.setMonth(expirationDate.getMonth() + 1);
+    } else if (updateUserVerify.verify === 2) {
+      expirationDate.setFullYear(expirationDate.getFullYear() + 50); // Hạn sử dụng là 50 năm
+    }
+    // Tạo bản ghi "revenue"
+    const revenueData = {
+      userId: userId, // Thêm ID của người dùng
+      expirationDate: expirationDate,
+      price: updateUserVerify.price,
+    };
+    // Gọi service để tạo bản ghi "revenue"
+    const revenue = await this.revenueService.createRevenue(revenueData);
+    return { user: updateUser, revenue: revenue };
+  }
+  //LOGOUT
+  @Post('logout')
+  async logout(@Req() req: any, @Res() res: Response) {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ message: 'Refresh token not found.' });
+    }
+    try {
+      const result = this.usersService.logout(refreshToken);
+      res.clearCookie('refreshToken');
+      return res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof InternalServerErrorException) {
+        return res.status(500).json({ message: error.message });
+      }
+      return res
+        .status(500)
+        .json({ message: 'An unexpected error occurred during logout.' });
     }
   }
 }

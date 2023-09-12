@@ -39,10 +39,11 @@
 }
 
 .notifications-container .avatar {
-  margin-right: 10px;
+  margin-right: 15px;
 }
 
 .notifications-container .avatar img {
+  max-width: 50px;
   width: 50px;
   height: 50px;
   border-radius: 50%;

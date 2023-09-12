@@ -98,7 +98,11 @@ export class UserService {
       const skip = (page - 1) * limit;
 
       const totalUsers = await this.userModel.countDocuments().exec();
-      const users = await this.userModel.find().skip(skip).limit(limit).exec();
+      const users = await this.userModel
+        .find({ role: 0 })
+        .skip(skip)
+        .limit(limit)
+        .exec();
       const totalPage = Math.ceil(totalUsers / limit);
 
       return { users, totalUsers, totalPage };
@@ -213,5 +217,28 @@ export class UserService {
         user: newUser,
       };
     }
+  }
+  //UPDATE USER STATUS
+  async updateUserStatus(userId: string, status: number): Promise<User> {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.status = status;
+    return user.save();
+  }
+  //UPDATE USER VERIFY
+  async updateUserVerify(userId: string, verify: number): Promise<User> {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.verify = verify;
+    return user.save();
+  }
+  //LOGOUT
+  logout(refreshToken: string): { message: string } {
+    this.removeRefreshToken(refreshToken);
+    return { message: 'Logout successfully' };
   }
 }

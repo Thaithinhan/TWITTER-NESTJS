@@ -44,7 +44,6 @@ const ProfileInfo: React.FC = () => {
 
   useEffect(() => {
     // Kiểm tra nếu userLogin có giá trị và ID trên URL khác với userLogin
-
     if (userLogin && userLogin._id !== id) {
       // Gửi yêu cầu lên server để kiểm tra xem userLogin có follow user có ID như trên URL không.
       BaseAxios.get(`/api/v1/follow/checkFollow/${id}`).then((response) => {
@@ -144,7 +143,11 @@ const ProfileInfo: React.FC = () => {
       <div className="user-profile-info px-4">
         <h5 className="fullname mt-2">
           <b>{userProfile?.fullname}</b>
-          {<VscVerifiedFilled className="text-blue-500 inline" />}
+          {userProfile?.verify && userProfile?.verify > 0 ? (
+            <VscVerifiedFilled className="text-blue-500 inline" />
+          ) : (
+            ""
+          )}
         </h5>
         <p className="username text-secondary">@{userProfile?.username}</p>
       </div>

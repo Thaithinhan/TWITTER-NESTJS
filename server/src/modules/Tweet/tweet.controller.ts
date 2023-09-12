@@ -1,6 +1,8 @@
 import { Response } from 'express';
+import { ObjectId } from 'mongoose';
 import { multerUpload } from 'src/config/multer.config';
 import { AuthUserGuard } from 'src/Guard/auth.guard';
+import { TweetGateway } from 'src/Socket/tweet.gateway';
 import { ExtendedRequest } from 'src/Types/Types';
 
 import {
@@ -27,7 +29,10 @@ import { TweetService } from './Tweet.service';
 
 @Controller('api/v1/tweets')
 export class TweetController {
-  constructor(private tweetService: TweetService) {}
+  constructor(
+    private tweetService: TweetService,
+    private tweetGateway: TweetGateway,
+  ) {}
 
   //CREATE TWEET
   @Post('/')
@@ -45,10 +50,20 @@ export class TweetController {
       if (files && files.images) {
         mediaUrls = files.images.map((file: Express.Multer.File) => file.path);
       }
-      const newTweet = await this.tweetService.createTweet(
+      const data = await this.tweetService.createTweet(
         req.userId,
         tweetDto.content,
         mediaUrls,
+      );
+      const { newTweet, followers } = data;
+      await Promise.all(
+        followers.map(async (followerId: ObjectId) => {
+          // Gửi sự kiện "new_tweet" cho từng người theo dõi
+          this.tweetGateway.server.emit('new_tweet', {
+            receiverId: followerId.toString(),
+            senderId: req.userId,
+          });
+        }),
       );
       return { success: true, newTweet };
     } catch (error) {
@@ -155,6 +170,11 @@ export class TweetController {
   async likeTweet(@Param('id') tweetId: string, @Req() req: ExtendedRequest) {
     try {
       const likedTweet = await this.tweetService.likeTweet(tweetId, req.userId);
+      const tweetAuthorId = likedTweet.author.toString();
+      this.tweetGateway.server.emit('commented', {
+        receiverId: tweetAuthorId,
+        senderId: req.userId,
+      });
       return { success: true, likedTweet };
     } catch (error) {
       return { success: false, message: error.message };
@@ -165,10 +185,7 @@ export class TweetController {
   @UseGuards(AuthUserGuard)
   async unlikeTweet(@Param('id') tweetId: string, @Req() req: ExtendedRequest) {
     try {
-      const unlikedTweet = await this.tweetService.unlikeTweet(
-        tweetId,
-        req.userId,
-      );
+      await this.tweetService.unlikeTweet(tweetId, req.userId);
       return { success: true, message: 'Unliked successfully' };
     } catch (error) {
       return { success: false, message: error.message };
@@ -206,6 +223,15 @@ export class TweetController {
         mediaUrls,
         commentDto.parentId,
       );
+      const parentComment = await this.tweetService.getTweetById(
+        newComment.parentId.toString(),
+      );
+      const tweetAuthorId = parentComment.author.toString();
+      // Gửi thông báo đến người tạo tweet với sự kiện "comment"
+      this.tweetGateway.server.emit('commented', {
+        receiverId: tweetAuthorId,
+        senderId: req.userId,
+      });
       return { success: true, newComment };
     } catch (error) {
       return { success: false, message: error };

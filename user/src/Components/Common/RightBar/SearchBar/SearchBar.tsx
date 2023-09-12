@@ -13,7 +13,7 @@ const SearchBar: React.FC = () => {
   const delayedSearch = lodash.debounce((value: string) => {
     setSearchWord(value);
     searchWordRef.current = value;
-  }, 500); // Thời gian trì hoãn (milliseconds)
+  }, 300); // Thời gian trì hoãn (milliseconds)
 
   return (
     <div className="search-bar">

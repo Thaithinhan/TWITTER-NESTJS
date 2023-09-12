@@ -1,23 +1,26 @@
-import './Tweet.css';
+import "./Tweet.css";
 
-import moment from 'moment';
-import React, { useEffect, useState } from 'react';
-import { FaRegComment } from 'react-icons/fa';
-import { VscVerifiedFilled } from 'react-icons/vsc';
-import { Link } from 'react-router-dom';
+import moment from "moment";
+import React, { useEffect, useState } from "react";
+import { FaRegComment } from "react-icons/fa";
+import { VscVerifiedFilled } from "react-icons/vsc";
+import { Link } from "react-router-dom";
 
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import FavoriteOutlinedIcon from '@mui/icons-material/FavoriteOutlined';
-import RepeatIcon from '@mui/icons-material/Repeat';
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteOutlinedIcon from "@mui/icons-material/FavoriteOutlined";
+import RepeatIcon from "@mui/icons-material/Repeat";
 
-import { useTweets } from '../../../Context/TweetContext';
-import { useUser } from '../../../Context/UserContext';
-import { ITweetProps } from '../../../Types/type';
+import { useTweets } from "../../../Context/TweetContext";
+import { useUser } from "../../../Context/UserContext";
+import { ITweetProps } from "../../../Types/type";
 import {
-    fetchCommentsByParentId, fetchUsersWhoLikedTweet, likeTweetById, unlikeTweetById
-} from '../../../Utils/TweetFunction';
-import CommentForm from '../../CommentForm/CommentForm';
-import DropdownTweet from '../DropdownTweet/DropdownTweet';
+  fetchCommentsByParentId,
+  fetchUsersWhoLikedTweet,
+  likeTweetById,
+  unlikeTweetById,
+} from "../../../Utils/TweetFunction";
+import CommentForm from "../../CommentForm/CommentForm";
+import DropdownTweet from "../DropdownTweet/DropdownTweet";
 
 const Tweet: React.FC<ITweetProps> = (props) => {
   const { tweet } = props;
@@ -72,7 +75,6 @@ const Tweet: React.FC<ITweetProps> = (props) => {
     setLike(true);
     setLikesCount((prevCount) => prevCount + 1);
     await likeTweetById(tweetId);
-    
   };
 
   const handleUnLike = async (

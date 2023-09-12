@@ -6,14 +6,17 @@ import { Link, useParams } from "react-router-dom";
 
 import { useFollowers } from "../../../../Context/FollowersContext";
 import { useFollowing } from "../../../../Context/FollowingContext";
+import { useTweets } from "../../../../Context/TweetContext";
 import { useUser } from "../../../../Context/UserContext";
 import { IUser } from "../../../../Types/type";
+import { getRelevantTweets } from "../../../../Utils/commonFunction";
 
 const SuggestionFollow: React.FC = () => {
   const [suggestions, setSuggestions] = useState<IUser[]>([]);
   const { setFollowings } = useFollowing();
   const { setFollowers } = useFollowers();
   const { user: currentUser } = useUser();
+  const { setTweets } = useTweets();
   const { id } = useParams();
 
   useEffect(() => {
@@ -32,10 +35,10 @@ const SuggestionFollow: React.FC = () => {
       });
   }, []);
 
-  const handleFollow = (userIdToFollow: string) => {
+  const handleFollow = async (userIdToFollow: string) => {
     const token = localStorage.getItem("accessToken") || "";
 
-    axios
+    await axios
       .post(
         "http://localhost:8000/api/v1/follow/follow-user",
         {
@@ -70,6 +73,8 @@ const SuggestionFollow: React.FC = () => {
         }
       });
     // sau khi follow user thành công
+    const tweet = await getRelevantTweets();
+    setTweets(tweet);
     const event = new CustomEvent("userFollowed", { detail: userIdToFollow });
     window.dispatchEvent(event);
   };

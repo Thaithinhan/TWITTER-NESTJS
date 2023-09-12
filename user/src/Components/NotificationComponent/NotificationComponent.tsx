@@ -1,11 +1,10 @@
 import "./NotificationComponent.css";
 
 import moment from "moment";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import BaseAxios from "../../API/axiosConfig";
-import { Images } from "../../Assets/images";
 import { INotification } from "../../Types/type";
 
 const NotificationComponent = () => {
@@ -20,7 +19,6 @@ const NotificationComponent = () => {
     // console.log(timestamp);
     const date = moment(timestamp); // Tạo đối tượng moment từ timestamp
     const now = moment(); // Đối tượng moment hiện tại
-
     if (now.diff(date, "days") < 1) {
       // Nếu chưa đủ 1 ngày
       return date.fromNow(); // Hiển thị dưới dạng "x phút trước", "vài giây trước",...
@@ -32,7 +30,8 @@ const NotificationComponent = () => {
   const fetchNotifications = async () => {
     try {
       const response = await BaseAxios.get("/api/v1/notifications"); // Đổi đường dẫn API tới địa chỉ phù hợp
-      const { notifications } = response.data;
+      const notifications = response.data;
+
       setNotifications(notifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -75,20 +74,20 @@ const NotificationComponent = () => {
             <>
               <div className="flex items-center me-4">
                 <Link
-                  to={`/profile/${notification.senderId._id}`}
+                  to={`/profile/${notification.senderId?._id}`}
                   className="avatar"
                 >
-                  <img src={notification.senderId.avatar} alt="Avatar" />
+                  <img src={notification.senderId?.avatar} alt="Avatar" />
                 </Link>
-                <Link to={`/profile/${notification.senderId._id}`}>
+                <Link to={`/profile/${notification.senderId?._id}`}>
                   <span className="fullname">
-                    {notification.senderId.fullname}
+                    {notification.senderId?.fullname}
                   </span>
                   <p className="username text-gray-400 font-bold text-sm">
-                    @{notification.senderId.username}
+                    @{notification.senderId?.username}
                   </p>
                   <span className="date">
-                    {formatTimestamp(notification.createdAt)}
+                    {formatTimestamp(notification?.createdAt)}
                   </span>
                 </Link>
               </div>
@@ -99,8 +98,11 @@ const NotificationComponent = () => {
                     to={`/post-detail/${notification.tweetId}`}
                     className="mx-2"
                   >
-                    {notification.type == "like" ? "Liked" : "Replied"} your
-                    tweet
+                    {notification.type == "like"
+                      ? "Liked your tweet"
+                      : notification.type === "comment"
+                      ? "Replied your tweet"
+                      : "Post a new Tweet"}
                   </Link>
                 </div>
               </div>

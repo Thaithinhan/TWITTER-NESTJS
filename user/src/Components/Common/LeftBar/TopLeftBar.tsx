@@ -40,26 +40,41 @@ const TopLeftBar = () => {
     }
   }, [path]);
 
+  // DÙng socket
   useEffect(() => {
-    // const socket = io("http://localhost:8000");
-    // socket.on("connect", () => {
-    //   console.log("Connected to server", socket.id);
-    // });
-    // // Thay đổi địa chỉ máy chủ của bạn
-    // socket.on("notification", (data) => {
-    //   console.log("data socket", data.data.senderId);
-    //   console.log("curent", userLogin?._id);
-    //   if (userLogin?._id !== data.data.senderId) {
-    //     setNotificationCount((prevCount) => prevCount + 1);
-    //   }
-    // });
-    // socket.on("disconnect", () => {
-    //   console.log("Disconnected from server", socket.id);
-    // });
-    // return () => {
-    //   socket.disconnect();
-    // };
-  }, []);
+    const socket = io("http://localhost:8000");
+    socket.on("connect", () => {
+      console.log("Connected to server", socket.id);
+    });
+    // Khi có thông báo "new_comment"
+    socket.on("new_tweet", (data) => {
+      // console.log("data socket", data);
+      if (userLogin?._id !== data.senderId) {
+        setNotificationCount((prevCount) => prevCount + 1);
+      }
+    });
+
+    socket.on("liked", (data) => {
+      // console.log("data socket", data);
+      // console.log("curent", userLogin?._id);
+      if (userLogin?._id !== data?.senderId) {
+        setNotificationCount((prevCount) => prevCount + 1);
+      }
+    });
+    socket.on("commented", (data) => {
+      // console.log("data socket", data);
+      // console.log("curent", userLogin?._id);
+      if (userLogin?._id !== data.senderId) {
+        setNotificationCount((prevCount) => prevCount + 1);
+      }
+    });
+    socket.on("disconnect", () => {
+      console.log("Disconnected from server", socket.id);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, [userLogin]);
 
   return (
     <div className="top-sidebar">

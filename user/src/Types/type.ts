@@ -83,8 +83,9 @@ export interface IDropdownTweetProps {
 }
 
 export interface INotification {
-  senderId: string;
-  receiverId: string;
+  senderId: IUser;
+  receiverId: IUser;
   type: "like" | "comment"; // Loại thông báo
   tweetId: string; // ID của tweet liên quan
+  createdAt: Date;
 }
