@@ -1,11 +1,23 @@
-import { ChangeEvent, useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from "react";
 
-import CloseIcon from '@mui/icons-material/Close';
-import { Box, Button, IconButton, Modal, TextField, Typography } from '@mui/material';
+import CloseIcon from "@mui/icons-material/Close";
+import {
+  Box,
+  Button,
+  IconButton,
+  Modal,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { makeStyles } from "@mui/styles";
 
-import { useUser } from '../../../Context/UserContext';
-import { IImageProfile, IModal, IValueInputProfile } from '../../../Types/type';
-import { fetchCurrentUser, fetchUpdateUser } from '../../../Utils/commonFunction';
+import { useUser } from "../../../Context/UserContext";
+import { IImageProfile, IModal, IValueInputProfile } from "../../../Types/type";
+import {
+  fetchCurrentUser,
+  fetchUpdateUser,
+} from "../../../Utils/commonFunction";
+import LoadingComponent from "../../LoadingComponent/isLoading";
 
 const style = {
   position: "absolute",
@@ -17,10 +29,19 @@ const style = {
   border: "2px solid #000",
   boxShadow: 24,
   p: 4,
+  zIndex: 1500,
 };
 
+const useStyles: any = makeStyles((theme: any) => ({
+  customModal: {
+    // Đặt giá trị z-index của Modal theo ý muốn
+    zIndex: 1500, // Thay đổi giá trị này thành giá trị bạn muốn
+  },
+}));
+
 function EditModalProfile({ isOpenModal, setIsOpenModal }: IModal) {
-  const [open, setOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // const [userLogin, setUserLogin] = useState<IUser | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -29,7 +50,7 @@ function EditModalProfile({ isOpenModal, setIsOpenModal }: IModal) {
     fullname: "",
     username: "",
   });
-
+  const classes = useStyles();
   const [inputFiles, setInputFiles] = useState<{
     avatar?: File;
     cover_photo?: File;
@@ -82,6 +103,7 @@ function EditModalProfile({ isOpenModal, setIsOpenModal }: IModal) {
 
   //XỬ LÝ SỰ KIỆN SUBMIT
   const handleEditProfile = async () => {
+    setIsLoading(true);
     const formData = new FormData();
     formData.append("fullname", inputValue.fullname);
     formData.append("username", inputValue.username);
@@ -94,8 +116,12 @@ function EditModalProfile({ isOpenModal, setIsOpenModal }: IModal) {
     try {
       const updatedUser = await fetchUpdateUser(formData);
       setUser(updatedUser); // cập nhật context với dữ liệu người dùng mới
+      setIsLoading(false);
+
       handleClose();
     } catch (error) {
+      setIsLoading(false);
+
       console.error("Error updating user profile:", error);
     }
 
@@ -104,10 +130,12 @@ function EditModalProfile({ isOpenModal, setIsOpenModal }: IModal) {
 
   return (
     <div>
+      {isLoading && <LoadingComponent />}
       <Modal
         open={open}
         onClose={handleClose}
         aria-labelledby="edit-profile-modal-title"
+        className={classes.customModal}
       >
         <Box sx={style}>
           <IconButton

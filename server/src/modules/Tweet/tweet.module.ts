@@ -3,6 +3,10 @@ import { TweetGateway } from 'src/Socket/tweet.gateway';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import {
+  BlockedUser,
+  BlockedUserSchema,
+} from '../BlockedUser/schema/BlockedUser.schema';
 import { FollowService } from '../Follow/follow.service';
 import { Follow, FollowSchema } from '../Follow/Schemas/follow.schemas';
 import { NotificationModule } from '../Notification/notification.module';
@@ -18,6 +22,7 @@ import { TweetService } from './Tweet.service';
     MongooseModule.forFeature([
       { name: Tweet.name, schema: TweetSchema },
       { name: Follow.name, schema: FollowSchema },
+      { name: BlockedUser.name, schema: BlockedUserSchema },
       { name: User.name, schema: UserSchema },
     ]),
     // Thêm bất kỳ module nào khác mà TweetModule phụ thuộc vào

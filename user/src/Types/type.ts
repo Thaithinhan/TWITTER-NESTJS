@@ -89,3 +89,9 @@ export interface INotification {
   tweetId: string; // ID của tweet liên quan
   createdAt: Date;
 }
+export interface IBlockedUser {
+  userId_current: string;
+  blockedUserId: IUser;
+  _id: string;
+  createdAt: Date;
+}

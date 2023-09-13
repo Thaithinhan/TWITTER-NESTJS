@@ -1,8 +1,5 @@
 import "./Chat.css";
 
-// ChatWrapper.tsx
-import React from "react";
-
 import MainChat from "./MainChat";
 import Sidebar from "./Sidebar";
 

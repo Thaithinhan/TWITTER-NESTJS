@@ -1,8 +1,16 @@
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { Model, Types } from 'mongoose';
+import {
+  BlockedUser,
+  BlockedUserDocument,
+} from 'src/modules/BlockedUser/schema/BlockedUser.schema';
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { User } from '../schemas/user.schema';
@@ -17,6 +25,8 @@ export class UserService {
   private refreshTokens: string[] = [];
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(BlockedUser.name)
+    private blockedUserModel: Model<BlockedUserDocument>,
     private mailService: MailService,
   ) {}
 
@@ -86,8 +96,36 @@ export class UserService {
   isRefreshTokenValid(token: string): boolean {
     return this.refreshTokens.includes(token);
   }
+  //CREATE NEW ACCESSTOKEN
+  createNewAccessToken(refreshToken: string): {
+    newAccessToken: string;
+    newRefreshToken: string;
+  } {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found.');
+    }
+    if (!this.isRefreshTokenValid(refreshToken)) {
+      throw new UnauthorizedException('Invalid refresh token.');
+    }
 
-  //******** Tạo thêm method để tạo mới accesstoken dựa vào refresh token
+    const decodedRefreshToken: any = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_TOKEN_SECRET,
+    );
+
+    const payload = {
+      userId: decodedRefreshToken.userId,
+      userRole: decodedRefreshToken.userRole,
+    };
+
+    const newAccessToken = this.getAccessToken(payload);
+    const newRefreshToken = this.getRefreshToken(payload);
+
+    this.storeRefreshToken(newRefreshToken);
+    this.removeRefreshToken(refreshToken); // Xóa Refresh Token cũ trong mảng
+
+    return { newAccessToken, newRefreshToken };
+  }
 
   // GET ALL USERS
   async getAllUsers(
@@ -156,12 +194,32 @@ export class UserService {
     return user;
   }
   //SEARCH USER
-  async searchUsers(query: string): Promise<Partial<User>[]> {
+  async searchUsers(
+    query: string,
+    userId_current: string,
+  ): Promise<Partial<User>[]> {
+    const blockedByCurrentUser = await this.blockedUserModel
+      .find({ userId_current: new Types.ObjectId(userId_current) })
+      .exec();
+    const blockedCurrentUser = await this.blockedUserModel.find({
+      blockedUserId: new Types.ObjectId(userId_current),
+    });
+    const blockedUserIds = [
+      ...new Set([
+        ...blockedByCurrentUser.map((u) => u.blockedUserId),
+        ...blockedCurrentUser.map((u) => u.userId_current),
+      ]),
+    ];
     const users = await this.userModel
       .find({
-        $or: [
-          { email: { $regex: query, $options: 'i' } },
-          { username: { $regex: query, $options: 'i' } },
+        $and: [
+          {
+            $or: [
+              { email: { $regex: query, $options: 'i' } },
+              { username: { $regex: query, $options: 'i' } },
+            ],
+          },
+          { _id: { $nin: blockedUserIds } },
         ],
       })
       .exec();

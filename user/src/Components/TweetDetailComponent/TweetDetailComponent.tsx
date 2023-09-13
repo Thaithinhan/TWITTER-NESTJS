@@ -36,8 +36,6 @@ const TweetDetailComponent: React.FC = () => {
     loadComment();
   }, [id, tweets]);
 
-  useEffect(() => {});
-
   return (
     <div className="post-detail-component border border-gray">
       <h4 className="font-bold text-xl ">Tweet</h4>

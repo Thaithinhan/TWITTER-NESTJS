@@ -3,6 +3,10 @@ import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
 
+import {
+  BlockedUser,
+  BlockedUserSchema,
+} from '../BlockedUser/schema/BlockedUser.schema';
 import { RevenueModule } from '../Revenue/revenue.module';
 import { RevenueService } from '../Revenue/revenue.service';
 import { EmailUniqueGuard } from './Guard/EmailUniqueGuard ';
@@ -14,7 +18,10 @@ import { UsersController } from './user.controller';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: 'User', schema: UserSchema },
+      { name: BlockedUser.name, schema: BlockedUserSchema },
+    ]),
     JwtModule.register({
       secret: process.env.JWT_ACCESS_TOKEN_SECRET,
       signOptions: { expiresIn: '2d' },

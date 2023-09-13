@@ -5,6 +5,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ServeStaticModule } from '@nestjs/serve-static';
 
+import { BlockedUsersModule } from './modules/BlockedUser/blockedUser.module';
 import { FollowModule } from './modules/Follow/follow.module';
 import { NotificationModule } from './modules/Notification/notification.module';
 import { RevenueModule } from './modules/Revenue/revenue.module';
@@ -21,6 +22,7 @@ const dbName = process.env.DB_NAME;
     TweetModule,
     RevenueModule,
     NotificationModule,
+    BlockedUsersModule,
   ],
   controllers: [],
   providers: [],

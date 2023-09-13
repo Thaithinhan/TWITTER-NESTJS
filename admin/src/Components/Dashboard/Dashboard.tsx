@@ -77,6 +77,12 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
+  // Tạo một mảng `sortedKeys` chứa các khóa từ tháng 1 đến tháng 12 của năm hiện tại:
+  const sortedKeys = Array.from(
+    { length: 12 },
+    (_, i) => `${i + 1}-${currentYear}`
+  );
+
   return (
     <div className="dashboard-wrapper">
       <DasboardContentTop />
@@ -88,9 +94,7 @@ const Dashboard = () => {
           loader={<div>Loading Chart</div>}
           data={[
             ["Month", "Revenue", "New Users"],
-            ...Array.from(
-              new Set([...revenueData.keys(), ...userData.keys()])
-            ).map((key) => {
+            ...sortedKeys.map((key) => {
               return [key, revenueData.get(key) || 0, userData.get(key) || 0];
             }),
           ]}
@@ -104,10 +108,10 @@ const Dashboard = () => {
             },
             seriesType: "bars",
             series: {
-              0: { color: "#2175f5" }, // Revenue là cột
+              0: { type: "line", color: "#2175f5" }, // Revenue là cột
               1: { color: "#33a532" }, // New Users là đường
             },
-            bar: { groupWidth: "20%" },
+            bar: { groupWidth: "100%" },
             titleTextStyle: {
               fontSize: 24,
             },

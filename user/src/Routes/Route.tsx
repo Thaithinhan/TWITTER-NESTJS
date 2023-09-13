@@ -1,10 +1,10 @@
-import React from "react";
 import { Route, Routes } from "react-router-dom";
 
 import Login from "../Components/Login/Login";
 import Register from "../Components/Register/Register";
 import RequireAuth from "../Components/RequireAuth/RequireAuth";
 import Auth from "../Layouts/Auth/Auth";
+import BlockedUser from "../Layouts/BlockedUser/BlockedUser";
 import Home from "../Layouts/Home/Home";
 import MessagesLayout from "../Layouts/Messages/Messages";
 import Notification from "../Layouts/Notifications/Notification";
@@ -38,6 +38,9 @@ const Router = () => {
       </Route>
       <Route element={<RequireAuth />}>
         <Route path="/verify" element={<Verify />} />
+      </Route>
+      <Route element={<RequireAuth />}>
+        <Route path="/block-user" element={<BlockedUser />} />
       </Route>
 
       <Route path="/" element={<Login />} />

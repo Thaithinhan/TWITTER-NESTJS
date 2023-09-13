@@ -1,11 +1,11 @@
 import "./TopLeftBar.css";
 
 import { useEffect, useState } from "react";
+import { BiBlock } from "react-icons/bi";
 import { LuVerified } from "react-icons/lu";
 import { Link, useLocation } from "react-router-dom";
 import { io } from "socket.io-client";
 
-import BookmarksOutlinedIcon from "@mui/icons-material/BookmarksOutlined";
 import ForumOutlinedIcon from "@mui/icons-material/ForumOutlined";
 import HomeIcon from "@mui/icons-material/Home";
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
@@ -37,6 +37,9 @@ const TopLeftBar = () => {
     }
     if (path.includes("/profile")) {
       setActiveTab("profile");
+    }
+    if (path == "/block-user") {
+      setActiveTab("block-user");
     }
   }, [path]);
 
@@ -132,14 +135,14 @@ const TopLeftBar = () => {
         </li>
         <li
           className={
-            activTab === "bookmarks"
+            activTab === "block-user"
               ? "menu-item-sidebar active"
               : "menu-item-sidebar"
           }
         >
-          <Link to={"/bookmarks"} className={"menu"}>
-            <BookmarksOutlinedIcon className="icon-menu" />
-            <span className="menu-title"> Bookmarks</span>
+          <Link to={"/block-user"} className={"menu"}>
+            <BiBlock className="icon-menu" />
+            <span className="menu-title"> Blocked List</span>
           </Link>
         </li>
         <li

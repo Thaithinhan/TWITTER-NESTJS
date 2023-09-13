@@ -28,7 +28,6 @@ async function bootstrap() {
   });
   const ioAdapter = new CustomIoAdapter(app);
   app.useWebSocketAdapter(ioAdapter);
-
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(PORT, () => {

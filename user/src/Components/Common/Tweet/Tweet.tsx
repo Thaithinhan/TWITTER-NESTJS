@@ -13,6 +13,7 @@ import RepeatIcon from "@mui/icons-material/Repeat";
 import { useTweets } from "../../../Context/TweetContext";
 import { useUser } from "../../../Context/UserContext";
 import { ITweetProps } from "../../../Types/type";
+import { isBlocked } from "../../../Utils/commonFunction";
 import {
   fetchCommentsByParentId,
   fetchUsersWhoLikedTweet,
@@ -38,6 +39,15 @@ const Tweet: React.FC<ITweetProps> = (props) => {
       return date.format("DD/MM/YYYY"); // Hiển thị dưới dạng "ngày/tháng"
     }
   };
+  //CHECK BLOKC USER
+  const [isCheckBlockUser, setIsCheckBlockUser] = useState<boolean>(true);
+  const checkIsBlockUser = async (blockedUserId: string) => {
+    const response = await isBlocked(blockedUserId);
+    setIsCheckBlockUser(response);
+  };
+  useEffect(() => {
+    checkIsBlockUser(tweet.author._id.toString());
+  }, [tweet]);
 
   // Step 1: Check if currentUser liked the tweet
 
@@ -97,7 +107,7 @@ const Tweet: React.FC<ITweetProps> = (props) => {
   const handleCloseCommentForm = () => {
     setShowCommentForm(false);
   };
-
+  if (isCheckBlockUser) return "";
   return (
     <div
       className="tweet nav-link"

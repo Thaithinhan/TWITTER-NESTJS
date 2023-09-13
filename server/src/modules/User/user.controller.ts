@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthUserGuard } from 'src/Guard/auth.guard';
 import { ExtendedRequest } from 'src/Types/Types';
 
@@ -66,9 +66,30 @@ export class UsersController {
 
     return res.status(200).json({ accessToken, user });
   }
-
-  // ... thêm các endpoints khác như đăng xuất, làm mới token, v.v. ...
-
+  //CREATE NEW ACCESSTOKEN
+  @Post('refresh-token')
+  async createNewAccessToken(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    const refreshToken = req.cookies.refreshToken; // Lấy refreshToken từ cookie
+    try {
+      const token = this.usersService.createNewAccessToken(refreshToken);
+      // Gửi AccessToken mới trong phản hồi
+      const { newAccessToken, newRefreshToken } = token;
+      res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        secure: true, // Bạn chỉ nên sử dụng option này khi ứng dụng chạy trên HTTPS
+        sameSite: 'none',
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Set thời gian hết hạn cho cookie = 7 ngày
+      });
+      res.status(200).json(newAccessToken);
+    } catch (error) {
+      // Xử lý lỗi (ví dụ: refreshToken không hợp lệ)
+      console.log(error);
+      res.status(401).json({ error: error.message });
+    }
+  }
   //GET ALL USERS
   @Get()
   async getAllUsers(
@@ -115,13 +136,18 @@ export class UsersController {
 
   //SEARCH USERS BY EMAIL AND USERNAME
   @Get('search')
-  async searchUsers(@Query('query') query: string, @Res() res: Response) {
+  @UseGuards(AuthUserGuard)
+  async searchUsers(
+    @Req() req: ExtendedRequest,
+    @Query('query') query: string,
+    @Res() res: Response,
+  ) {
     if (!query) {
       return res.status(400).json({ message: 'Please enter a keyword' });
     }
 
     try {
-      const users = await this.usersService.searchUsers(query);
+      const users = await this.usersService.searchUsers(query, req.userId);
       return res.status(200).json({ users });
     } catch (error) {
       console.error(error);

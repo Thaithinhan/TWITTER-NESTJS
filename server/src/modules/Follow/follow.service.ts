@@ -3,6 +3,10 @@ import { Model, Types } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
+import {
+  BlockedUser,
+  BlockedUserDocument,
+} from '../BlockedUser/schema/BlockedUser.schema';
 import { User } from '../User/schemas/user.schema';
 import { CreateFollowDto } from './DTO/Follow.DTO';
 import { Follow } from './Schemas/follow.schemas';
@@ -12,6 +16,8 @@ export class FollowService {
   constructor(
     @InjectModel(Follow.name) private followModel: Model<Follow>,
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(BlockedUser.name)
+    private blockedUserModel: Model<BlockedUserDocument>,
   ) {}
   //**CREATE A FOLLOW
   async followUser(data: CreateFollowDto): Promise<{ mesage: string }> {
@@ -82,14 +88,31 @@ export class FollowService {
     const followedUserIds = followedUsers.map(
       (follow) => follow?.followed_userId,
     );
+    // Lấy danh sách ID của những người dùng mà người dùng hiện tại đã chặn và đã chặn người dùng hiện tại
+    const blockedByCurrentUser = await this.blockedUserModel.find({
+      userId_current: new Types.ObjectId(currentUserId),
+    });
+    const blockedCurrentUser = await this.blockedUserModel.find({
+      blockedUserId: new Types.ObjectId(currentUserId),
+    });
+
+    const blockedUserIds = [
+      ...new Set([
+        ...blockedByCurrentUser.map((u) => u.blockedUserId),
+        ...blockedCurrentUser.map((u) => u.userId_current),
+      ]),
+    ];
 
     // Thêm ID của người dùng hiện tại vào danh sách để tránh lấy thông tin của chính họ
-    followedUserIds.push(new Types.ObjectId(currentUserId));
-
+    const excludedUserIds = [
+      ...followedUserIds,
+      ...blockedUserIds,
+      new Types.ObjectId(currentUserId),
+    ];
     // Lấy 10 người dùng mà người dùng hiện tại chưa follow
     const usersToFollow = await this.userModel
       .aggregate([
-        { $match: { _id: { $nin: followedUserIds } } },
+        { $match: { _id: { $nin: excludedUserIds } } },
         { $project: { password: 0 } },
         { $sample: { size: 10 } },
       ])

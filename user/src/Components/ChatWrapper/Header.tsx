@@ -1,12 +1,12 @@
 // Header.tsx
-import React from "react";
+
+import { Link } from "react-router-dom";
 
 const Header = () => (
   <div className="header">
-    {/* <div className="left-icons">
-      <i className="icon-settings" />
-      <i className="icon-mail" />
-    </div> */}
+    <Link to={"/home"} className="text-xs font-bold text-blue-500">
+      Back to home
+    </Link>
     <div className="title">Message</div>
   </div>
 );

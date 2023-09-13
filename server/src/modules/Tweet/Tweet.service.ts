@@ -6,10 +6,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 
-import { FollowService } from '../Follow/follow.service';
 import { Follow } from '../Follow/Schemas/follow.schemas';
 import { NotificationService } from '../Notification/notification.service';
-import { User } from '../User/schemas/user.schema';
 import { Tweet, TweetDocument } from './Schemas/tweet.schemas';
 
 @Injectable()
@@ -18,7 +16,6 @@ export class TweetService {
     @InjectModel(Tweet.name) private tweetModel: Model<TweetDocument>,
     @InjectModel(Follow.name) private followModel: Model<Follow>,
     private notificationService: NotificationService,
-    private followService: FollowService,
   ) {}
   //CREATE TWEET
   async createTweet(
@@ -212,7 +209,6 @@ export class TweetService {
     return listComments;
   }
 }
-
 export class CustomIoAdapter extends IoAdapter {
   createIOServer(port: 8000, options?: ServerOptions): any {
     options = {

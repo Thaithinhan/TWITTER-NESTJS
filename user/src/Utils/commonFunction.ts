@@ -1,7 +1,4 @@
-import { verify } from "crypto";
 import { toast } from "react-toastify";
-
-import data from "@emoji-mart/data";
 
 import BaseAxios from "../API/axiosConfig";
 
@@ -166,4 +163,45 @@ export const updateUserVerify = async (verify: object) => {
   } catch (error) {
     console.log(error);
   }
+};
+
+export const createBlockedUser = async (blockedUserId: string) => {
+  const body = {
+    blockedUserId: blockedUserId,
+  };
+  const response = await BaseAxios.post(`/api/v1/blocked-users`, body);
+  try {
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+export const isBlocked = async (blockedUserId: string) => {
+  const body = {
+    blockedUserId: blockedUserId,
+  };
+  const response = await BaseAxios.post(
+    `/api/v1/blocked-users/is-blocked`,
+    body
+  );
+  try {
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+//GET BLOCKED USER FOR CURRENT USER
+export const getBlockedUser = async () => {
+  const response = await BaseAxios.get(`/api/v1/blocked-users`);
+  return response.data;
+};
+//HANDLE UNBLOCKED USER
+export const unblockUser = async (blockedUserId: string) => {
+  const body = {
+    blockedUserId: blockedUserId,
+  };
+  const response = await BaseAxios.delete(`/api/v1/blocked-users/unblock`, {
+    data: body,
+  });
+  return response.data;
 };
