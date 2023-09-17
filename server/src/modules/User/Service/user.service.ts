@@ -234,7 +234,6 @@ export class UserService {
     const user = await this.userModel.findOne({
       email: profile.emails[0].value,
     });
-
     if (user) {
       if (user.type_login === 1) {
         throw new Error('User has already registered with a regular email.');

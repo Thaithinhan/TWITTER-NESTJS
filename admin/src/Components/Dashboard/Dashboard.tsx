@@ -86,32 +86,59 @@ const Dashboard = () => {
   return (
     <div className="dashboard-wrapper">
       <DasboardContentTop />
+
       <div className="chart-container">
+        {/* Biểu đồ Doanh thu */}
         <Chart
           className="chart"
-          height={"700px"}
-          chartType="ComboChart"
-          loader={<div>Loading Chart</div>}
+          height={"300px"}
+          chartType="LineChart"
+          loader={<div>Loading Revenue Chart</div>}
           data={[
-            ["Month", "Revenue", "New Users"],
+            ["Month", "Revenue"],
             ...sortedKeys.map((key) => {
-              return [key, revenueData.get(key) || 0, userData.get(key) || 0];
+              return [key, revenueData.get(key) || 0];
             }),
           ]}
           options={{
-            title: "Monthly Revenue and New Users",
+            title: "Monthly Revenue",
             vAxis: {
-              title: "Count",
+              title: "Revenue",
             },
             hAxis: {
               title: "Month",
             },
-            seriesType: "bars",
-            series: {
-              0: { type: "line", color: "#2175f5" }, // Revenue là cột
-              1: { color: "#33a532" }, // New Users là đường
+            colors: ["#2175f5"],
+            titleTextStyle: {
+              fontSize: 24,
             },
-            bar: { groupWidth: "100%" },
+            pointSize: 5, // Đã thêm vào
+            pointShape: "circle", // Đã thêm vào
+          }}
+        />
+
+        {/* Biểu đồ Người dùng mới */}
+        <Chart
+          className="chart"
+          height={"300px"}
+          chartType="ColumnChart"
+          loader={<div>Loading User Chart</div>}
+          data={[
+            ["Month", "New Users"],
+            ...sortedKeys.map((key) => {
+              return [key, userData.get(key) || 0];
+            }),
+          ]}
+          options={{
+            title: "Monthly New Users",
+            vAxis: {
+              title: "New Users",
+            },
+            hAxis: {
+              title: "Month",
+            },
+            colors: ["#33a532"],
+            bar: { groupWidth: "90%" },
             titleTextStyle: {
               fontSize: 24,
             },
@@ -121,5 +148,4 @@ const Dashboard = () => {
     </div>
   );
 };
-
 export default Dashboard;
